@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elección Reina - Escuela de Minas</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @media (min-width: 640px) {
+            .android-container { max-width: 412px; height: 844px; border: 12px solid #1e293b; border-radius: 36px; margin: 20px auto; position: relative; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen sm:p-4">
+
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-950/80 z-50 flex flex-col items-center justify-center space-y-3">
+        <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-sm text-slate-300 font-medium">Sincronizando con Drive...</p>
+    </div>
+
+    <div class="android-container bg-slate-950 flex flex-col min-h-screen sm:min-h-0 sm:h-[820px] shadow-2xl">
+        
+        <div id="view-login" class="flex-1 flex flex-col justify-center px-6 py-12">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/20">
+                    <i data-lucide="crown" class="w-10 h-10 text-slate-950"></i>
+                </div>
+                <h1 class="text-2xl font-black tracking-tight text-amber-400">Escuela de Minas</h1>
+                <p class="text-xs text-slate-400 uppercase tracking-widest mt-1">Elección Reina 2026</p>
+            </div>
+
+            <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                <h2 class="text-lg font-bold text-center text-slate-200">Ingreso Individual</h2>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Nombre del Jurado</label>
+                    <input type="text" id="login-user" placeholder="Ej: Jurado 3" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">Contraseña de Acceso</label>
+                    <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 text-white">
+                </div>
+                <button onclick="login()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl text-sm mt-2 transition">
+                    Conectar Dispositivo
+                </button>
+            </div>
+            <button onclick="changeView('view-reports')" class="mt-8 text-center text-xs text-slate-500 hover:text-amber-400 transition">
+                Acceso Panel Organizadores
+            </button>
+        </div>
+
+        <header id="app-header" class="hidden bg-slate-900 border-b border-slate-800 px-4 py-3 items-center justify-between sticky top-0 z-50">
+            <div class="flex items-center space-x-2">
+                <i data-lucide="user" class="w-4 h-4 text-amber-400"></i>
+                <span class="text-xs font-bold uppercase text-slate-300" id="header-user">-</span>
+            </div>
+            <button onclick="logout()" class="text-xs text-rose-400 flex items-center gap-1">
+                <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Salir
+            </button>
+        </header>
+
+        <div id="view-selection" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white">Candidatas</h2>
+                    <p class="text-xs text-slate-400">Seleccione para puntuar.</p>
+                </div>
+                <button onclick="fetchDataFromDrive()" class="bg-slate-800 p-2 rounded-xl text-amber-400 active:scale-90 transition">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-3" id="candidatas-grid"></div>
+        </div>
+
+        <div id="view-voting" class="hidden flex-1 overflow-y-auto flex flex-col">
+            <div class="p-3 bg-slate-900 flex items-center border-b border-slate-800">
+                <button onclick="changeView('view-selection')" class="text-xs text-amber-400 flex items-center">
+                    <i data-lucide="chevron-left" class="w-4 h-4 mr-1"></i> Volver a la lista
+                </button>
+            </div>
+
+            <div class="relative bg-slate-950 p-4 flex gap-3 overflow-x-auto">
+                <div class="shrink-0 w-32 h-44 bg-slate-800 rounded-xl overflow-hidden border border-slate-700 relative">
+                    <img id="vote-img-face" src="" class="w-full h-full object-cover">
+                    <span class="absolute bottom-2 left-2 bg-slate-950/80 text-[9px] px-1.5 py-0.5 rounded text-slate-300">Rostro</span>
+                </div>
+                <div class="shrink-0 w-32 h-44 bg-slate-800 rounded-xl overflow-hidden border border-slate-700 relative">
+                    <img id="vote-img-body" src="" class="w-full h-full object-cover">
+                    <span class="absolute bottom-2 left-2 bg-slate-950/80 text-[9px] px-1.5 py-0.5 rounded text-slate-300">Cuerpo</span>
+                </div>
+                <div class="flex flex-col justify-center">
+                    <span id="vote-num" class="text-4xl font-black text-amber-400 leading-none">00</span>
+                    <h3 id="vote-name" class="text-sm font-bold text-white mt-1 truncate max-w-[120px]">Nombre</h3>
+                    <p id="vote-curse" class="text-[11px] text-slate-400" style="white-space: nowrap;">Curso</p>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-900 border-y border-slate-800 space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-slate-950 p-2 rounded-lg"><span class="text-slate-500 block">Edad</span><strong id="vote-age" class="text-slate-200">-</strong></div>
+                    <div class="bg-slate-950 p-2 rounded-lg"><span class="text-slate-500 block">Hobby</span><strong id="vote-hobby" class="text-slate-200">-</strong></div>
+                    <div class="bg-slate-950 p-2 rounded-lg"><span class="text-slate-500 block">Color Favorito</span><strong id="vote-color" class="text-slate-200">-</strong></div>
+                    <div class="bg-slate-950 p-2 rounded-lg"><span class="text-slate-500 block">Película Favorita</span><strong id="vote-movie" class="text-slate-200">-</strong></div>
+                    <div class="bg-slate-950 p-2 rounded-lg"><span class="text-slate-500 block">Tema Musical</span><strong id="vote-music" class="text-slate-200">-</strong></div>
+                    <div class="bg-slate-950 p-2 rounded-lg"><span class="text-slate-500 block">Profesión Ideal</span><strong id="vote-job" class="text-slate-200">-</strong></div>
+                </div>
+                <div class="bg-slate-950 p-2 rounded-lg">
+                    <span class="text-slate-500 block">Mensaje a la juventud</span>
+                    <p id="vote-message" class="text-slate-300 italic mt-0.5">-</p>
+                </div>
+            </div>
+
+            <div class="p-4 space-y-4 flex-1 bg-slate-950">
+                <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider">Calificación (10 - 100)</h4>
+                
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-semibold">
+                        <span class="text-slate-300">Belleza</span><span class="text-amber-400 font-bold" id="val-belleza">50 ptos</span>
+                    </div>
+                    <input type="range" id="score-belleza" min="10" max="100" value="50" oninput="updateLabel('belleza')" class="w-full accent-amber-500">
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-semibold">
+                        <span class="text-slate-300">Simpatía</span><span class="text-amber-400 font-bold" id="val-simpatia">50 ptos</span>
+                    </div>
+                    <input type="range" id="score-simpatia" min="10" max="100" value="50" oninput="updateLabel('simpatia')" class="w-full accent-amber-500">
+                </div>
+
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-semibold">
+                        <span class="text-slate-300">Elegancia</span><span class="text-amber-400 font-bold" id="val-elegancia">50 ptos</span>
+                    </div>
+                    <input type="range" id="score-elegancia" min="10" max="100" value="50" oninput="updateLabel('elegancia')" class="w-full accent-amber-500">
+                </div>
+
+                <button onclick="submitVote()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-3 rounded-xl transition mt-4 flex items-center justify-center gap-2 text-sm shadow-lg">
+                    <i data-lucide="cloud-upload" class="w-4 h-4"></i> Guardar Voto Remoto
+                </button>
+            </div>
+        </div>
+
+        <div id="view-reports" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-extrabold text-white">Resultados Globales</h2>
+                    <p class="text-xs text-slate-400">Consolidado multi-dispositivo en vivo.</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="fetchDataFromDrive()" class="bg-slate-800 p-2 rounded-xl text-emerald-400">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="changeView('view-login')" class="bg-slate-800 p-2 rounded-xl text-slate-400">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-950 text-slate-400 border-b border-slate-800 font-bold">
+                            <th class="p-2.5 text-center">Pos</th>
+                            <th class="p-2.5">Candidata</th>
+                            <th class="p-2.5 text-center">Bell</th>
+                            <th class="p-2.5 text-center">Simp</th>
+                            <th class="p-2.5 text-center">Eleg</th>
+                            <th class="p-2.5 text-right text-amber-400">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reports-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // =========================================================
+        // PEGA AQUÍ LA URL COMPLETA QUE TE DIO GOOGLE APPS SCRIPT
+           https://script.google.com/macros/s/AKfycbyKVZgfeDPJOFCkH3uE8yL9_a_OJdRpCmmEdpcmq3eU5xyVOMUQvRTHygl6kVidjb7z/exe
+        // =========================================================
+        const API_URL = "https://script.google.com/macros/s/REEMPLAZA_CON_TU_ID_DE_DEPLOYMENT/exec";
+
+        const candidatas = [
+            { id: 1, numero: "01", nombre: "Martina Benítez", curso: "6to 1ra Electrónica", edad: 17, hobby: "Robótica y Programación", color: "Azul Eléctrico", movie: "Interstellar", music: "Wos - Arrancármelo", job: "Ingeniera de Datos", message: "Que nunca dejen de aprender ni de cuestionarse el porqué de las cosas.", imgFace: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200", imgBody: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=300" },
+            { id: 2, numero: "02", nombre: "Valentina Solís", curso: "5to 2da Minería", edad: 16, hobby: "Senderismo y Fotografía", color: "Verde Esmeralda", movie: "El Señor de los Anillos", music: "Coldplay - Yellow", job: "Geóloga", message: "El futuro pertenece a quienes creen en la belleza de sus sueños.", imgFace: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200", imgBody: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=300" },
+            { id: 3, numero: "03", nombre: "Sofía Rodríguez", curso: "6to 1ra Química", edad: 17, hobby: "Tocar la guitarra", color: "Violeta", movie: "Oppenheimer", music: "Cerati - Puente", job: "Licenciada en Bioquímica", message: "Cuidemos nuestro entorno y seamos la ciencia que cambia positivamente el mundo.", imgFace: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200", imgBody: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=300" }
+        ];
+
+        let currentUser = "";
+        let selectedCandidataId = null;
+        let listaVotosDrive = []; // Almacena temporalmente lo descargado del servidor central
+
+        document.addEventListener("DOMContentLoaded", () => { lucide.createIcons(); });
+
+        function showLoading(show) {
+            document.getElementById('loading-overlay').classList.toggle('hidden', !show);
+        }
+
+        // DESCARGAR VOTOS DE DRIVE (Sincronización global)
+        async function fetchDataFromDrive() {
+            if(!API_URL.includes("macros/s/")) return; // Evitar llamadas si no está configurada la URL
+            showLoading(true);
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                if(data.status === "success") {
+                    listaVotosDrive = data.votos;
+                    buildSelectionGrid();
+                    buildReportsTable();
+                }
+            } catch (error) {
+                console.error("Error al sincronizar con servidor:", error);
+                alert("Error de red al sincronizar datos.");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function changeView(viewId) {
+            const views = ['view-login', 'view-selection', 'view-voting', 'view-reports'];
+            views.forEach(v => document.getElementById(v).classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+            
+            const header = document.getElementById('app-header');
+            if (viewId === 'view-selection' || viewId === 'view-voting') {
+                header.classList.remove('hidden'); header.classList.add('flex');
+            } else {
+                header.classList.add('hidden'); header.classList.remove('flex');
+            }
+
+            if(viewId === 'view-reports' || viewId === 'view-selection') {
+                fetchDataFromDrive();
+            }
+        }
+
+        function login() {
+            const user = document.getElementById('login-user').value.trim();
+            if(user) {
+                currentUser = user;
+                document.getElementById('header-user').innerText = currentUser;
+                changeView('view-selection');
+            } else {
+                alert("Ingrese su identificador de jurado");
+            }
+        }
+
+        function logout() { currentUser = ""; changeView('view-login'); }
+
+        function buildSelectionGrid() {
+            const grid = document.getElementById('candidatas-grid');
+            grid.innerHTML = "";
+
+            candidatas.forEach(c => {
+                // Verificar si en la lista remota este jurado ya votó a la candidata actual
+                const yaVoto = listaVotosDrive.some(v => v.jurado === currentUser && v.idCandidata == c.id);
+
+                const card = document.createElement('div');
+                card.className = `bg-slate-900 border ${yaVoto ? 'border-emerald-500/50' : 'border-slate-800'} rounded-2xl overflow-hidden p-2 relative cursor-pointer`;
+                card.onclick = () => openVoting(c.id);
+
+                card.innerHTML = `
+                    <div class="relative h-36 bg-slate-800 rounded-xl overflow-hidden mb-2">
+                        <img src="${c.imgFace}" class="w-full h-full object-cover">
+                        <span class="absolute top-2 left-2 bg-slate-950 text-amber-400 font-black text-xs px-2 py-1 rounded-lg">N° ${c.numero}</span>
+                        ${yaVoto ? `<div class="absolute top-2 right-2 bg-emerald-500 text-slate-950 p-1 rounded-full"><i data-lucide="check" class="w-3 h-3 stroke-[3]"></i></div>` : ''}
+                    </div>
+                    <div class="text-center px-1">
+                        <h3 class="text-xs font-bold text-white truncate">${c.nombre}</h3>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function openVoting(id) {
+            selectedCandidataId = id;
+            const cand = candidatas.find(c => c.id === id);
+            
+            document.getElementById('vote-num').innerText = cand.numero;
+            document.getElementById('vote-name').innerText = cand.nombre;
+            document.getElementById('vote-curse').innerText = cand.curso;
+            document.getElementById('vote-age').innerText = `${cand.edad} años`;
+            document.getElementById('vote-hobby').innerText = cand.hobby;
+            document.getElementById('vote-color').innerText = cand.color;
+            document.getElementById('vote-movie').innerText = cand.movie;
+            document.getElementById('vote-music').innerText = cand.music;
+            document.getElementById('vote-job').innerText = cand.job;
+            document.getElementById('vote-message').innerText = `"${cand.message}"`;
+            document.getElementById('vote-img-face').src = cand.imgFace;
+            document.getElementById('vote-img-body').src = cand.imgBody;
+
+            // Si ya existía un voto remoto propio, cargar esos valores en los sliders
+            const votoPrevio = listaVotosDrive.find(v => v.jurado === currentUser && v.idCandidata == selectedCandidataId);
+            if(votoPrevio) {
+                document.getElementById('score-belleza').value = votoPrevio.belleza;
+                document.getElementById('score-simpatia').value = votoPrevio.simpatia;
+                document.getElementById('score-elegancia').value = votoPrevio.elegancia;
+            } else {
+                document.getElementById('score-belleza').value = 50;
+                document.getElementById('score-simpatia').value = 50;
+                document.getElementById('score-elegancia').value = 50;
+            }
+
+            updateLabel('belleza'); updateLabel('simpatia'); updateLabel('elegancia');
+            changeView('view-voting');
+        }
+
+        function updateLabel(tipo) {
+            const val = document.getElementById(`score-${tipo}`).value;
+            document.getElementById(`val-${tipo}`).innerText = `${val} ptos`;
+        }
+
+        // ENVIAR VOTO REAL AL SERVIDOR DE GOOGLE DRIVE (POST)
+        async function submitVote() {
+            const payload = {
+                jurado: currentUser,
+                idCandidata: selectedCandidataId,
+                belleza: parseInt(document.getElementById('score-belleza').value),
+                simpatia: parseInt(document.getElementById('score-simpatia').value),
+                elegancia: parseInt(document.getElementById('score-elegancia').value)
+            };
+
+            showLoading(true);
+            try {
+                // Envío de datos mediante HTTP POST
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    mode: "no-cors", // Requerido para lidiar con políticas CORS de Apps Script de forma sencilla
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                alert("Puntaje enviado a la nube. Sincronizando dispositivo...");
+                // Forzar refresco local
+                await fetchDataFromDrive();
+                changeView('view-selection');
+
+            } catch (error) {
+                console.error("Error al subir el puntaje:", error);
+                alert("Hubo un problema de conexión al subir el puntaje.");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function buildReportsTable() {
+            const tbody = document.getElementById('reports-table-body');
+            tbody.innerHTML = "";
+
+            let resultados = candidatas.map(c => {
+                let totalB = 0, totalS = 0, totalE = 0;
+                
+                // Procesar todos los votos consolidados de todos los jurados
+                listaVotosDrive.forEach(v => {
+                    if(v.idCandidata == c.id) {
+                        totalB += parseInt(v.belleza || 0);
+                        totalS += parseInt(v.simpatia || 0);
+                        totalE += parseInt(v.elegancia || 0);
+                    }
+                });
+
+                return { ...c, b: totalB, s: totalS, e: totalE, total: totalB + totalS + totalE };
+            });
+
+            resultados.sort((a,b) => b.total - a.total);
+
+            resultados.forEach((r, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-800";
+                tr.innerHTML = `
+                    <td class="p-2.5 text-center font-bold text-slate-400">${index + 1}°</td>
+                    <td class="p-2.5 font-semibold text-white">N° ${r.numero} - ${r.nombre}</td>
+                    <td class="p-2.5 text-center text-slate-400">${r.b}</td>
+                    <td class="p-2.5 text-center text-slate-400">${r.s}</td>
+                    <td class="p-2.5 text-center text-slate-400">${r.e}</td>
+                    <td class="p-2.5 text-right font-bold text-amber-400">${r.total}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
