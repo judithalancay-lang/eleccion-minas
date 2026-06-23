@@ -16,7 +16,6 @@
 
     <div class="android-container bg-slate-950 flex flex-col min-h-screen sm:min-h-0 sm:h-[820px] shadow-2xl">
         
-        <!-- 1. INTERFAZ DE ACCESO ÚNICO (LOGIN UNIFICADO) -->
         <div id="view-login" class="flex-1 flex flex-col justify-center px-6 py-12">
             <div class="text-center mb-8">
                 <div class="w-20 h-20 bg-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/20">
@@ -43,7 +42,6 @@
             </div>
         </div>
 
-        <!-- HEADER COMÚN (Solo visible para Jurados) -->
         <header id="app-header" class="hidden bg-slate-900 border-b border-slate-800 px-4 py-3 items-center justify-between sticky top-0 z-50">
             <div class="flex items-center space-x-2">
                 <i data-lucide="user" class="w-4 h-4 text-amber-400"></i>
@@ -54,7 +52,6 @@
             </button>
         </header>
 
-        <!-- 2. INTERFAZ DE SELECCIÓN DE CANDIDATAS (Solo para Jurados) -->
         <div id="view-selection" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
             <div>
                 <h2 class="text-xl font-extrabold text-white">Candidatas</h2>
@@ -63,7 +60,6 @@
             <div class="grid grid-cols-2 gap-3" id="candidatas-grid"></div>
         </div>
 
-        <!-- 3. INTERFAZ DE VOTACIÓN (Solo para Jurados) -->
         <div id="view-voting" class="hidden flex-1 overflow-y-auto flex flex-col">
             <div class="p-3 bg-slate-900 flex items-center border-b border-slate-800">
                 <button onclick="changeView('view-selection')" class="text-xs text-amber-400 flex items-center">
@@ -103,7 +99,7 @@
                 
                 <div class="space-y-1">
                     <div class="flex justify-between text-xs font-semibold">
-                        <span class="text-slate-300">Belleza</span><span class="text-amber-400 font-bold" id="val-belleza">50 ptos</span>
+                        <span class="text-slate-300">Beauty</span><span class="text-amber-400 font-bold" id="val-belleza">50 ptos</span>
                     </div>
                     <input type="range" id="score-belleza" min="10" max="100" value="50" oninput="updateLabel('belleza')" class="w-full accent-amber-500">
                 </div>
@@ -128,7 +124,6 @@
             </div>
         </div>
 
-        <!-- 4. INTERFAZ DE REPORTES (Solo visible para Organizadores) -->
         <div id="view-reports" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
             <div class="flex justify-between items-center">
                 <div>
@@ -179,7 +174,6 @@
             views.forEach(v => document.getElementById(v).classList.add('hidden'));
             document.getElementById(viewId).classList.remove('hidden');
             
-            // El header de navegación superior solo se usa en el flujo del Jurado
             const header = document.getElementById('app-header');
             if (viewId === 'view-selection' || viewId === 'view-voting') {
                 header.classList.remove('hidden'); header.classList.add('flex');
@@ -191,7 +185,7 @@
             if(viewId === 'view-selection') buildSelectionGrid();
         }
 
-        // LÓGICA DE ENTRADA INTELIGENTE Y DIRECCIONAMIENTO AUTOMÁTICO
+        // VALIDACIÓN INTERNA AUTOMÁTICA DEL BOTÓN ÚNICO
         function procesarAcceso() {
             const user = document.getElementById('login-user').value.trim();
             const pass = document.getElementById('login-pass').value.trim();
@@ -201,23 +195,20 @@
                 return;
             }
 
-            // CASO 1: Es el organizador (Validación estricta de credenciales)
+            // Si el usuario ingresado corresponde al administrador
             if(user.toLowerCase() === 'admin' || user.toLowerCase() === 'organizador') {
                 if(user === "admin" && pass === "admin123") {
                     currentUser = "ADMINISTRADOR";
                     currentRole = "organizador";
-                    
-                    // Limpiar y enviar directamente a reportes
                     limpiarLogin();
                     changeView('view-reports');
                 } else {
-                    alert("ACCESO DENEGADO!!! Credenciales de organizador incorrectas.");
+                    alert("ACCESO DENEGADO!!! Contraseña de organizador incorrecta.");
                 }
                 return;
             }
 
-            // CASO 2: Es un jurado (Cualquier otro usuario simulado)
-            // Para la prueba local, exigimos una clave simple de jurado (ej: 123 o lo que gustes)
+            // Si es cualquier otro usuario, el sistema asume de forma transparente que es un Jurado
             currentUser = user;
             currentRole = "jurado";
             document.getElementById('header-user').innerText = currentUser;
@@ -261,64 +252,4 @@
         function openVoting(id) {
             selectedCandidataId = id;
             const cand = candidatas.find(c => c.id === id);
-            document.getElementById('vote-num').innerText = cand.numero;
-            document.getElementById('vote-name').innerText = cand.nombre;
-            document.getElementById('vote-curse').innerText = cand.curso;
-            document.getElementById('vote-age').innerText = `${cand.edad} años`;
-            document.getElementById('vote-hobby').innerText = cand.hobby;
-            document.getElementById('vote-color').innerText = cand.color;
-            document.getElementById('vote-movie').innerText = cand.movie;
-            document.getElementById('vote-music').innerText = cand.music;
-            document.getElementById('vote-job').innerText = cand.job;
-
-            const votoPrevio = listaVotosLocal.find(v => v.jurado === currentUser && v.idCandidata == selectedCandidataId);
-            document.getElementById('score-belleza').value = votoPrevio ? votoPrevio.belleza : 50;
-            document.getElementById('score-simpatia').value = votoPrevio ? votoPrevio.simpatia : 50;
-            document.getElementById('score-elegancia').value = votoPrevio ? votoPrevio.elegancia : 50;
-
-            updateLabel('belleza'); updateLabel('simpatia'); updateLabel('elegancia');
-            changeView('view-voting');
-        }
-
-        function updateLabel(tipo) {
-            const val = document.getElementById(`score-${tipo}`).value;
-            document.getElementById(`val-${tipo}`).innerText = `${val} ptos`;
-        }
-
-        function submitVote() {
-            listaVotosLocal = listaVotosLocal.filter(v => !(v.jurado === currentUser && v.idCandidata == selectedCandidataId));
-            listaVotosLocal.push({
-                jurado: currentUser,
-                idCandidata: selectedCandidataId,
-                belleza: parseInt(document.getElementById('score-belleza').value),
-                simpatia: parseInt(document.getElementById('score-simpatia').value),
-                elegancia: parseInt(document.getElementById('score-elegancia').value)
-            });
-            alert("¡Puntaje guardado con éxito!");
-            changeView('view-selection');
-        }
-
-        function buildReportsTable() {
-            const tbody = document.getElementById('reports-table-body');
-            tbody.innerHTML = "";
-            let resultados = candidatas.map(c => {
-                let b = 0, s = 0, e = 0;
-                listaVotosLocal.forEach(v => { if(v.idCandidata == c.id) { b += v.belleza; s += v.simpatia; e += v.elegancia; } });
-                return { ...c, b, s, e, total: b + s + e };
-            }).sort((a,b) => b.total - a.total);
-
-            resultados.forEach((r, idx) => {
-                tbody.innerHTML += `
-                    <tr class="border-b border-slate-800">
-                        <td class="p-2.5 text-center font-bold text-slate-400">${idx + 1}°</td>
-                        <td class="p-2.5 font-semibold text-white">N° ${r.numero} - ${r.nombre}</td>
-                        <td class="p-2.5 text-center text-slate-400">${r.b}</td>
-                        <td class="p-2.5 text-center text-slate-400">${r.s}</td>
-                        <td class="p-2.5 text-center text-slate-400">${r.e}</td>
-                        <td class="p-2.5 text-right font-bold text-amber-400">${r.total}</td>
-                    </tr>`;
-            });
-        }
-    </script>
-</body>
-</html>
+            document.
