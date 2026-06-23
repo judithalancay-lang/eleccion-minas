@@ -14,11 +14,6 @@
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen sm:p-4">
 
-    <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-950/80 z-50 flex flex-col items-center justify-center space-y-3">
-        <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-        <p class="text-sm text-slate-300 font-medium">Sincronizando con Drive...</p>
-    </div>
-
     <div class="android-container bg-slate-950 flex flex-col min-h-screen sm:min-h-0 sm:h-[820px] shadow-2xl">
         
         <div id="view-login" class="flex-1 flex flex-col justify-center px-6 py-12">
@@ -31,17 +26,13 @@
             </div>
 
             <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
-                <h2 class="text-lg font-bold text-center text-slate-200">Ingreso Individual</h2>
+                <h2 class="text-lg font-bold text-center text-slate-200">Ingreso de Prueba</h2>
                 <div>
                     <label class="block text-xs font-semibold text-slate-400 mb-1">Nombre del Jurado</label>
-                    <input type="text" id="login-user" placeholder="Ej: Jurado 3" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 text-white">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-400 mb-1">Contraseña de Acceso</label>
-                    <input type="password" id="login-pass" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 text-white">
+                    <input type="text" id="login-user" placeholder="Ej: Jurado 1" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 text-white">
                 </div>
                 <button onclick="login()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-xl text-sm mt-2 transition">
-                    Conectar Dispositivo
+                    Simular Conexión Local
                 </button>
             </div>
             <button onclick="changeView('view-reports')" class="mt-8 text-center text-xs text-slate-500 hover:text-amber-400 transition">
@@ -60,14 +51,9 @@
         </header>
 
         <div id="view-selection" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h2 class="text-xl font-extrabold text-white">Candidatas</h2>
-                    <p class="text-xs text-slate-400">Seleccione para puntuar.</p>
-                </div>
-                <button onclick="fetchDataFromDrive()" class="bg-slate-800 p-2 rounded-xl text-amber-400 active:scale-90 transition">
-                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                </button>
+            <div>
+                <h2 class="text-xl font-extrabold text-white">Candidatas</h2>
+                <p class="text-xs text-slate-400">Seleccione para puntuar.</p>
             </div>
             <div class="grid grid-cols-2 gap-3" id="candidatas-grid"></div>
         </div>
@@ -91,7 +77,7 @@
                 <div class="flex flex-col justify-center">
                     <span id="vote-num" class="text-4xl font-black text-amber-400 leading-none">00</span>
                     <h3 id="vote-name" class="text-sm font-bold text-white mt-1 truncate max-w-[120px]">Nombre</h3>
-                    <p id="vote-curse" class="text-[11px] text-slate-400" style="white-space: nowrap;">Curso</p>
+                    <p id="vote-curse" class="text-[11px] text-slate-400">Curso</p>
                 </div>
             </div>
 
@@ -135,7 +121,7 @@
                 </div>
 
                 <button onclick="submitVote()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black py-3 rounded-xl transition mt-4 flex items-center justify-center gap-2 text-sm shadow-lg">
-                    <i data-lucide="cloud-upload" class="w-4 h-4"></i> Guardar Voto Remoto
+                    <i data-lucide="check" class="w-4 h-4"></i> Guardar Voto Local
                 </button>
             </div>
         </div>
@@ -143,17 +129,12 @@
         <div id="view-reports" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
             <div class="flex justify-between items-center">
                 <div>
-                    <h2 class="text-xl font-extrabold text-white">Resultados Globales</h2>
-                    <p class="text-xs text-slate-400">Consolidado multi-dispositivo en vivo.</p>
+                    <h2 class="text-xl font-extrabold text-white">Resultados Locales</h2>
+                    <p class="text-xs text-slate-400">Consolidado simulado en memoria.</p>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="fetchDataFromDrive()" class="bg-slate-800 p-2 rounded-xl text-emerald-400">
-                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                    </button>
-                    <button onclick="changeView('view-login')" class="bg-slate-800 p-2 rounded-xl text-slate-400">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                    </button>
-                </div>
+                <button onclick="changeView('view-login')" class="bg-slate-800 p-2 rounded-xl text-slate-400">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                </button>
             </div>
 
             <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
@@ -176,12 +157,6 @@
     </div>
 
     <script>
-        // =========================================================
-        // PEGA AQUÍ LA URL COMPLETA QUE TE DIO GOOGLE APPS SCRIPT
-        //   https://script.google.com/macros/s/AKfycbyKVZgfeDPJOFCkH3uE8yL9_a_OJdRpCmmEdpcmq3eU5xyVOMUQvRTHygl6kVidjb7z/exe
-        // =========================================================
-        const API_URL = "";
-
         const candidatas = [
             { id: 1, numero: "01", nombre: "Martina Benítez", curso: "6to 1ra Electrónica", edad: 17, hobby: "Robótica y Programación", color: "Azul Eléctrico", movie: "Interstellar", music: "Wos - Arrancármelo", job: "Ingeniera de Datos", message: "Que nunca dejen de aprender ni de cuestionarse el porqué de las cosas.", imgFace: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200", imgBody: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&q=80&w=300" },
             { id: 2, numero: "02", nombre: "Valentina Solís", curso: "5to 2da Minería", edad: 16, hobby: "Senderismo y Fotografía", color: "Verde Esmeralda", movie: "El Señor de los Anillos", music: "Coldplay - Yellow", job: "Geóloga", message: "El futuro pertenece a quienes creen en la belleza de sus sueños.", imgFace: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200", imgBody: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=300" },
@@ -190,33 +165,12 @@
 
         let currentUser = "";
         let selectedCandidataId = null;
-        let listaVotosDrive = []; // Almacena temporalmente lo descargado del servidor central
+        let listaVotosLocal = []; 
 
-        document.addEventListener("DOMContentLoaded", () => { lucide.createIcons(); });
-
-        function showLoading(show) {
-            document.getElementById('loading-overlay').classList.toggle('hidden', !show);
-        }
-
-        // DESCARGAR VOTOS DE DRIVE (Sincronización global)
-        async function fetchDataFromDrive() {
-            if(!API_URL.includes("macros/s/")) return; // Evitar llamadas si no está configurada la URL
-            showLoading(true);
-            try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
-                if(data.status === "success") {
-                    listaVotosDrive = data.votos;
-                    buildSelectionGrid();
-                    buildReportsTable();
-                }
-            } catch (error) {
-                console.error("Error al sincronizar con servidor:", error);
-                alert("Error de red al sincronizar datos.");
-            } finally {
-                showLoading(false);
-            }
-        }
+        document.addEventListener("DOMContentLoaded", () => { 
+            lucide.createIcons(); 
+            buildSelectionGrid();
+        });
 
         function changeView(viewId) {
             const views = ['view-login', 'view-selection', 'view-voting', 'view-reports'];
@@ -230,9 +184,8 @@
                 header.classList.add('hidden'); header.classList.remove('flex');
             }
 
-            if(viewId === 'view-reports' || viewId === 'view-selection') {
-                fetchDataFromDrive();
-            }
+            if(viewId === 'view-reports') buildReportsTable();
+            if(viewId === 'view-selection') buildSelectionGrid();
         }
 
         function login() {
@@ -242,7 +195,7 @@
                 document.getElementById('header-user').innerText = currentUser;
                 changeView('view-selection');
             } else {
-                alert("Ingrese su identificador de jurado");
+                alert("Ingrese un nombre de jurado");
             }
         }
 
@@ -253,8 +206,7 @@
             grid.innerHTML = "";
 
             candidatas.forEach(c => {
-                // Verificar si en la lista remota este jurado ya votó a la candidata actual
-                const yaVoto = listaVotosDrive.some(v => v.jurado === currentUser && v.idCandidata == c.id);
+                const yaVoto = listaVotosLocal.some(v => v.jurado === currentUser && v.idCandidata == c.id);
 
                 const card = document.createElement('div');
                 card.className = `bg-slate-900 border ${yaVoto ? 'border-emerald-500/50' : 'border-slate-800'} rounded-2xl overflow-hidden p-2 relative cursor-pointer`;
@@ -292,8 +244,7 @@
             document.getElementById('vote-img-face').src = cand.imgFace;
             document.getElementById('vote-img-body').src = cand.imgBody;
 
-            // Si ya existía un voto remoto propio, cargar esos valores en los sliders
-            const votoPrevio = listaVotosDrive.find(v => v.jurado === currentUser && v.idCandidata == selectedCandidataId);
+            const votoPrevio = listaVotosLocal.find(v => v.jurado === currentUser && v.idCandidata == selectedCandidataId);
             if(votoPrevio) {
                 document.getElementById('score-belleza').value = votoPrevio.belleza;
                 document.getElementById('score-simpatia').value = votoPrevio.simpatia;
@@ -313,37 +264,25 @@
             document.getElementById(`val-${tipo}`).innerText = `${val} ptos`;
         }
 
-        // ENVIAR VOTO REAL AL SERVIDOR DE GOOGLE DRIVE (POST)
-        async function submitVote() {
-            const payload = {
+        function submitVote() {
+            const b = parseInt(document.getElementById('score-belleza').value);
+            const s = parseInt(document.getElementById('score-simpatia').value);
+            const e = parseInt(document.getElementById('score-elegancia').value);
+
+            // Eliminar voto viejo si ya existía para esta candidata de este jurado
+            listaVotosLocal = listaVotosLocal.filter(v => !(v.jurado === currentUser && v.idCandidata == selectedCandidataId));
+
+            // Agregar el nuevo voto
+            listaVotosLocal.push({
                 jurado: currentUser,
                 idCandidata: selectedCandidataId,
-                belleza: parseInt(document.getElementById('score-belleza').value),
-                simpatia: parseInt(document.getElementById('score-simpatia').value),
-                elegancia: parseInt(document.getElementById('score-elegancia').value)
-            };
+                belleza: b,
+                simpatia: s,
+                elegancia: e
+            });
 
-            showLoading(true);
-            try {
-                // Envío de datos mediante HTTP POST
-                const response = await fetch(API_URL, {
-                    method: "POST",
-                    mode: "no-cors", // Requerido para lidiar con políticas CORS de Apps Script de forma sencilla
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-
-                alert("Puntaje enviado a la nube. Sincronizando dispositivo...");
-                // Forzar refresco local
-                await fetchDataFromDrive();
-                changeView('view-selection');
-
-            } catch (error) {
-                console.error("Error al subir el puntaje:", error);
-                alert("Hubo un problema de conexión al subir el puntaje.");
-            } finally {
-                showLoading(false);
-            }
+            alert("¡Puntaje guardado con éxito localmente!");
+            changeView('view-selection');
         }
 
         function buildReportsTable() {
@@ -353,12 +292,11 @@
             let resultados = candidatas.map(c => {
                 let totalB = 0, totalS = 0, totalE = 0;
                 
-                // Procesar todos los votos consolidados de todos los jurados
-                listaVotosDrive.forEach(v => {
+                listaVotosLocal.forEach(v => {
                     if(v.idCandidata == c.id) {
-                        totalB += parseInt(v.belleza || 0);
-                        totalS += parseInt(v.simpatia || 0);
-                        totalE += parseInt(v.elegancia || 0);
+                        totalB += v.belleza;
+                        totalS += v.simpatia;
+                        totalE += v.elegancia;
                     }
                 });
 
